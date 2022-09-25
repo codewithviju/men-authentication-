@@ -1,21 +1,24 @@
 import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "../Services/axiosInterceptor";
-import { useNavigate, Link } from "react-router-dom";
-const Login = () => {
+const ChangePassword = () => {
+  const { id, token } = useParams();
   const navigate = useNavigate();
   const [input, setInput] = useState({
-    email: "",
-    password: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await axios.post("api/auth/users/login", input);
-    console.log(response.data);
-    if (response.status === 200) {
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("name", response.data.name);
-      navigate("/");
+
+    const res = await axios.post(
+      `/api/auth/forget-password/${id}/${token}`,
+      input
+    );
+    if (res.status === 200) {
+      alert("password changed Successfully");
+      navigate("/login");
     }
   };
   return (
@@ -35,44 +38,30 @@ const Login = () => {
                 </div>
                 <div class="col-md-6 col-lg-7 d-flex align-items-center">
                   <div class="card-body p-4 p-lg-5 text-black">
-                    <form onSubmit={handleLogin}>
+                    <form onSubmit={handleSubmit}>
                       <div class="d-flex align-items-center mb-3 pb-1">
                         <i
                           class="fas fa-cubes fa-2x me-3"
                           style={{ color: " #ff6219" }}
                         ></i>
-                        <span class="h1 fw-bold mb-0">Logo</span>
+                        <span class="h1 fw-bold mb-0">Forget Password?</span>
                       </div>
+
                       <h5
                         class="fw-normal mb-3 pb-3"
                         style={{ letterSpacing: "1px" }}
                       >
-                        Sign into your account
+                        Type Your Email Here
                       </h5>
+
                       <div class="form-outline mb-4">
                         <input
-                          type="email"
-                          id=""
-                          placeholder="Enter Email"
-                          class="form-control form-control-lg"
-                          name="email"
-                          value={input.email}
-                          onChange={(e) =>
-                            setInput({
-                              ...input,
-                              [e.target.name]: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div class="form-outline mb-4">
-                        <input
-                          placeholder="Enter Password"
                           type="password"
-                          id="form2Example27"
+                          id=""
+                          placeholder="Enter New Password"
                           class="form-control form-control-lg"
-                          name="password"
-                          value={input.password}
+                          name="newPassword"
+                          value={input.newPassword}
                           onChange={(e) =>
                             setInput({
                               ...input,
@@ -81,22 +70,32 @@ const Login = () => {
                           }
                         />
                       </div>
+
+                      <div class="form-outline mb-4">
+                        <input
+                          type="password"
+                          id=""
+                          placeholder="Enter Confirm Email"
+                          class="form-control form-control-lg"
+                          name="confirmPassword"
+                          value={input.confirmPassword}
+                          onChange={(e) =>
+                            setInput({
+                              ...input,
+                              [e.target.name]: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
                       <div class="pt-1 mb-4">
                         <button
                           class="btn btn-dark btn-lg btn-block"
                           type="submit"
                         >
-                          Login
+                          Change Password
                         </button>
                       </div>
-                      Forget Password ?
-                      <Link to={"/reset-password"}>Click Here</Link>
-                      <p class="mb-5 pb-lg-2" style={{ color: "#393f81" }}>
-                        Don't have an account?{" "}
-                        <Link to="/register" style={{ color: "#393f81" }}>
-                          Register here
-                        </Link>
-                      </p>
                     </form>
                   </div>
                 </div>
@@ -109,4 +108,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ChangePassword;

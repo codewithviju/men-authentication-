@@ -6,6 +6,11 @@ const router = express.Router();
 router.post("/users/register", authController.userRegistration);
 router.post("/users/login", authController.userLogin);
 
+// Forget Password
+
+router.post("/forget-password", authController.forgetPassword);
+router.post("/forget-password/:id/:token", authController.forgetPasswordEmail);
+
 // Protected Routes
 
 router.post(
