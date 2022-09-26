@@ -2,6 +2,7 @@ import authModel from "../models/authModel.js";
 import nodemailer from "nodemailer";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { sendEmailtoUser } from "../config/EmailTemplate.js";
 
 class authController {
   static userRegistration = async (req, res) => {
@@ -16,11 +17,23 @@ class authController {
           const genSalt = await bcryptjs.genSalt(10);
           const hashedPassword = await bcryptjs.hash(password, genSalt);
 
+          // Generate Token
+
+          const secretKey = "welcomeToCodeWithviju";
+
+          const token = jwt.sign({ email: email }, secretKey, {
+            expiresIn: "10m",
+          });
+
+          const link = `http://localhost:9000/api/auth/verify/${token}`;
+
+          sendEmailtoUser(link, email);
           // save the user
           const newUser = authModel({
             name,
             email,
             password: hashedPassword,
+            isVerified: false,
           });
 
           const resUser = await newUser.save();
@@ -43,21 +56,35 @@ class authController {
       if (email && password) {
         const isUser = await authModel.findOne({ email: email });
         if (isUser) {
-          if (
-            email === isUser.email &&
-            (await bcryptjs.compare(password, isUser.password))
-          ) {
-            // Generate token
-            const token = jwt.sign({ userID: isUser._id }, "pleaseSubscribe", {
-              expiresIn: "2d",
-            });
-            return res.status(200).json({
-              message: "Login Successfully",
-              token,
-              name: isUser.name,
-            });
+          // Check is User Verified
+
+          const isVerifiedProfile = await authModel.findById(isUser._id);
+
+          if (isVerifiedProfile.isVerified) {
+            if (
+              email === isUser.email &&
+              (await bcryptjs.compare(password, isUser.password))
+            ) {
+              // Generate token
+              const token = jwt.sign(
+                { userID: isUser._id },
+                "pleaseSubscribe",
+                {
+                  expiresIn: "2d",
+                }
+              );
+              return res.status(200).json({
+                message: "Login Successfully",
+                token,
+                name: isUser.name,
+              });
+            } else {
+              return res.status(400).json({ message: "Invalid Credentials!" });
+            }
           } else {
-            return res.status(400).json({ message: "Invalid Credentials!" });
+            return res
+              .status(400)
+              .json({ message: "Email Verification Pending" });
           }
         } else {
           return res.status(400).json({ message: "user Not Registered!!" });
@@ -299,6 +326,42 @@ class authController {
         }
       } else {
         return res.status(400).json({ message: "All fields are required" });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: error.message });
+    }
+  };
+
+  static saveVerifiedEmail = async (req, res) => {
+    const { token } = req.params;
+    try {
+      if (token) {
+        // token verify
+        const secretKey = "welcomeToCodeWithviju";
+        const isEmailVerified = await jwt.verify(token, secretKey);
+        if (isEmailVerified) {
+          const getUser = await authModel.findOne({
+            email: isEmailVerified.email,
+          });
+
+          const saveEmail = await authModel.findByIdAndUpdate(getUser._id, {
+            $set: {
+              isVerified: true,
+            },
+          });
+
+          if (saveEmail) {
+            return res
+              .status(200)
+              .json({ message: "Email Verification Success" });
+          }
+
+          //
+        } else {
+          return res.status(400).json({ message: "Link Expired" });
+        }
+      } else {
+        return res.status(400).json({ message: "Invalid URL" });
       }
     } catch (error) {
       return res.status(400).json({ message: error.message });

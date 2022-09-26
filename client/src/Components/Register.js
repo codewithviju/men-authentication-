@@ -11,10 +11,15 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const response = await axios.post("api/auth/users/register", input);
-    alert(response.data.message);
-    if (response.status === 201) {
-      navigate("/login");
+
+    try {
+      const response = await axios.post("api/auth/users/register", input);
+      if (response.status === 201) {
+        alert(response.data.message);
+        navigate("/login");
+      }
+    } catch (error) {
+      alert(error.response.data.message);
     }
   };
   return (

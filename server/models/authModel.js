@@ -10,6 +10,9 @@ const authSchema = new mongoose.Schema({
   password: {
     type: String,
   },
+  isVerified: {
+    type: Boolean,
+  },
 });
 
 const authModel = mongoose.model("user", authSchema);

@@ -10,12 +10,16 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const response = await axios.post("api/auth/users/login", input);
-    console.log(response.data);
-    if (response.status === 200) {
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("name", response.data.name);
-      navigate("/");
+    try {
+      const response = await axios.post("api/auth/users/login", input);
+      if (response.status === 200) {
+        alert(response.data.message);
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("name", response.data.name);
+        navigate("/");
+      }
+    } catch (error) {
+      alert(error.response.data.message);
     }
   };
   return (

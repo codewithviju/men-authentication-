@@ -11,6 +11,10 @@ router.post("/users/login", authController.userLogin);
 router.post("/forget-password", authController.forgetPassword);
 router.post("/forget-password/:id/:token", authController.forgetPasswordEmail);
 
+// Email Verification
+
+router.get("/verify/:token", authController.saveVerifiedEmail);
+
 // Protected Routes
 
 router.post(
